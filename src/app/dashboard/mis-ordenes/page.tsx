@@ -6,21 +6,36 @@ import { useAuth } from '@/context/AuthContext';
 import { Order, OrderStatus } from '@/types';
 import orderService from '@/services/orderService';
 
+// --- INTERFAZ PARA ERRORES DE API ---
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 const MisOrdenesPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false); // ✅ SOLUCIÓN: Estado para controlar renderizado en cliente
 
   useEffect(() => {
+    // Este efecto se ejecuta solo en el navegador, no en el servidor.
+    setIsClient(true); 
+
     if (!authLoading && user?.id) {
       const fetchClientOrders = async () => {
         try {
           const data = await orderService.getClientOrders(user.id);
           setOrders(data);
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error('Error al obtener órdenes del cliente:', err);
-          setError(err.response?.data?.message || 'Error al cargar tus órdenes.');
+          const apiError = err as ApiError;
+          const message = apiError.response?.data?.message || 'Error al cargar tus órdenes.';
+          setError(message);
         } finally {
           setLoading(false);
         }
@@ -112,10 +127,12 @@ const MisOrdenesPage: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {new Date(order.fechaCreacion).toLocaleString()}
+                    {/* ✅ SOLUCIÓN: Renderizado condicional de la fecha */}
+                    {isClient ? new Date(order.fechaCreacion).toLocaleString('es-PE') : '...'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {order.fechaEntrega ? new Date(order.fechaEntrega).toLocaleString() : 'N/A'}
+                    {/* ✅ SOLUCIÓN: Renderizado condicional de la fecha */}
+                    {isClient ? (order.fechaEntrega ? new Date(order.fechaEntrega).toLocaleString('es-PE') : 'N/A') : '...'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {order.entrega ? (

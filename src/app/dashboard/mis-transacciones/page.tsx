@@ -1,39 +1,53 @@
 // src/app/dashboard/mis-transacciones/page.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from "@/context/AuthContext";
 import { Transaction, TransactionType } from "@/types";
 import transactionService from "@/services/transactionService";
 import { Shield, FileText, Mail, ArrowDown, ArrowUp, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+// --- INTERFAZ PARA ERRORES DE API ---
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 const MisTransaccionesPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false); // ✅ SOLUCIÓN: Estado para controlar renderizado en cliente
 
-  useEffect(() => {
-    if (!authLoading && user?.id) {
-      fetchClientTransactions();
-    }
-  }, [user, authLoading]);
-
-  const fetchClientTransactions = async () => {
+  const fetchClientTransactions = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
     setError(null);
     try {
       const data = await transactionService.getClientTransactions(user.id);
       setTransactions(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error al obtener transacciones del cliente:', err);
-      setError(err.response?.data?.message || 'Error al cargar tus transacciones.');
+      const apiError = err as ApiError;
+      setError(apiError.response?.data?.message || 'Error al cargar tus transacciones.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    // Este efecto se ejecuta solo en el navegador
+    setIsClient(true);
+
+    if (!authLoading && user?.id) {
+      fetchClientTransactions();
+    }
+  }, [user, authLoading, fetchClientTransactions]);
 
   const getTypeColor = (type: TransactionType) => {
     switch (type) {
@@ -165,7 +179,8 @@ const MisTransaccionesPage: React.FC = () => {
                       {transaction.descripcion}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
-                      {new Date(transaction.fecha).toLocaleString()}
+                      {/* ✅ SOLUCIÓN: Renderizado condicional de la fecha */}
+                      {isClient ? new Date(transaction.fecha).toLocaleString('es-PE') : '...'}
                     </td>
                   </tr>
                 ))}

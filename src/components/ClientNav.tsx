@@ -21,7 +21,6 @@ const ClientNav: React.FC = () => {
     const [coinsError, setCoinsError] = useState<string | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // Función para obtener las monedas del usuario
     const fetchUserCoins = useCallback(async () => {
         if (user?.id) {
             setLoadingCoins(true);
@@ -29,8 +28,9 @@ const ClientNav: React.FC = () => {
             try {
                 const userData = await userService.getUserById(user.id);
                 setUserCoins(userData.monedas);
-            } catch (err: any) {
+            } catch (err: unknown) { 
                 console.error('Error al obtener monedas del usuario:', err);
+                // La lógica interna ya es segura, solo se necesitaba cambiar el tipo del error.
                 setCoinsError('Error al cargar monedas.');
                 setUserCoins(null);
             } finally {
@@ -91,7 +91,7 @@ const ClientNav: React.FC = () => {
                                                 ${isActive
                                                 ? 'bg-slate-800 text-blue-400'
                                                 : 'text-gray-300 hover:text-white hover:bg-slate-800'
-                                            }
+                                                }
                                             `}
                                         >
                                             <Icon className="h-4 w-4 mr-2" />

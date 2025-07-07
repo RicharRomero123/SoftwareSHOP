@@ -7,6 +7,16 @@ import { Service } from '@/types';
 import serviceService from '@/services/serviceService';
 import orderService from '@/services/orderService';
 
+// --- INTERFAZ PARA ERRORES DE API ---
+// Es una buena práctica definir la forma que esperas que tengan los errores.
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 const ServiciosPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
@@ -23,9 +33,10 @@ const ServiciosPage: React.FC = () => {
       try {
         const data = await serviceService.getAllServices();
         setServices(data);
-      } catch (err: any) {
+      } catch (err: unknown) { // ✅ CORRECCIÓN: Se usa 'unknown' en lugar de 'any'
         console.error('Error al obtener servicios:', err);
-        setError(err.response?.data?.message || 'Error al cargar los servicios disponibles.');
+        const error = err as ApiError; // Asumimos que el error tiene la forma de ApiError
+        setError(error.response?.data?.message || 'Error al cargar los servicios disponibles.');
       } finally {
         setLoading(false);
       }
@@ -47,9 +58,10 @@ const ServiciosPage: React.FC = () => {
     try {
       const newOrder = await orderService.createOrder(user.id, serviceId);
       setPurchaseMessage(`¡Compra realizada! Tu orden #${newOrder.id.substring(0, 8)}... está ${newOrder.estado}.`);
-    } catch (err: any) {
+    } catch (err: unknown) { // ✅ CORRECCIÓN: Se usa 'unknown' en lugar de 'any'
       console.error('Error al comprar servicio:', err);
-      setPurchaseError(err.response?.data?.message || 'Error al procesar la compra. Verifica tus monedas.');
+      const error = err as ApiError; // Asumimos que el error tiene la forma de ApiError
+      setPurchaseError(error.response?.data?.message || 'Error al procesar la compra. Verifica tus monedas.');
     } finally {
       setPurchasingServiceId(null);
     }

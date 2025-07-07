@@ -1,7 +1,7 @@
 // src/app/login/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from "@/context/AuthContext";
@@ -9,16 +9,61 @@ import { authService } from "@/services/authService";
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// --- INTERFAZ PARA ERRORES DE API (Buena práctica) ---
+interface ApiError {
+    response?: {
+        data?: {
+            message?: string;
+        };
+    };
+}
+
+const AnimatedBackground: React.FC = () => (
+    <div className="absolute inset-0 overflow-hidden">
+        {[...Array(30)].map((_, i) => (
+            <motion.div
+                key={i}
+                className="absolute rounded-full bg-gradient-to-r from-blue-600/10 to-indigo-600/10"
+                initial={{
+                    width: `${Math.random() * 10 + 5}rem`,
+                    height: `${Math.random() * 10 + 5}rem`,
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    opacity: Math.random() * 0.2 + 0.05
+                }}
+                animate={{
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    scale: [1, 1.2, 1]
+                }}
+                transition={{
+                    duration: Math.random() * 10 + 15,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    delay: Math.random() * 5
+                }}
+            />
+        ))}
+    </div>
+);
+
+
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+    const [isClient, setIsClient] = useState(false); // ✅ SOLUCIÓN: Estado para controlar renderizado en cliente
     const { login } = useAuth();
     const router = useRouter();
 
     const title = "SISTEMASVIP.SHOP";
     const letters = title.split("");
+
+    useEffect(() => {
+        // Este código solo se ejecuta en el navegador
+        setIsClient(true);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,45 +83,16 @@ const LoginPage: React.FC = () => {
                 setError('Acceso denegado: Solo clientes pueden acceder a este panel.');
             }
         } catch (err: unknown) {
-            if (err && typeof err === 'object' && 'response' in err) {
-                const axiosErr = err as { response?: { data?: { message?: string } } };
-                setError(axiosErr.response?.data?.message || 'Error al iniciar sesión. Verifica tus credenciales.');
-            } else {
-                setError('Error inesperado al iniciar sesión.');
-            }
+            const apiError = err as ApiError;
+            setError(apiError.response?.data?.message || 'Error al iniciar sesión. Verifica tus credenciales.');
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-            {/* Fondo animado */}
-            <div className="absolute inset-0 overflow-hidden">
-                {[...Array(30)].map((_, i) => (
-                    <motion.div
-                        key={i}
-                        className="absolute rounded-full bg-gradient-to-r from-blue-600/10 to-indigo-600/10"
-                        initial={{
-                            width: `${Math.random() * 10 + 5}rem`,
-                            height: `${Math.random() * 10 + 5}rem`,
-                            top: `${Math.random() * 100}%`,
-                            left: `${Math.random() * 100}%`,
-                            opacity: Math.random() * 0.2 + 0.05
-                        }}
-                        animate={{
-                            top: `${Math.random() * 100}%`,
-                            left: `${Math.random() * 100}%`,
-                            scale: [1, 1.2, 1]
-                        }}
-                        transition={{
-                            duration: Math.random() * 10 + 15,
-                            repeat: Infinity,
-                            repeatType: "reverse",
-                            delay: Math.random() * 5
-                        }}
-                    />
-                ))}
-            </div>
-
+            {/* ✅ SOLUCIÓN 1: Renderizado condicional del fondo */}
+            {isClient && <AnimatedBackground />}
+            
             {/* Título animado */}
             <motion.div
                 className="absolute top-8 w-full max-w-md px-4 z-10"
@@ -207,18 +223,20 @@ const LoginPage: React.FC = () => {
                     </form>
 
                     <div className="mt-8 pt-6 border-t border-gray-200">
-                        <p className="text-center text-gray-600 text-sm">
+                        {/* ✅ SOLUCIÓN 2: Se cambió <p> por <div> */}
+                        <div className="text-center text-gray-600 text-sm">
                             ¿No tienes una cuenta?{' '}
                             <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-300">
                                 Regístrate aquí
                             </Link>
-                        </p>
+                        </div>
                     </div>
                 </motion.div>
 
                 <div className="mt-6 text-center">
                     <p className="text-sm text-white/80">
-                        © {new Date().getFullYear()} SISTEMASVIP.SHOP. Todos los derechos reservados.
+                        {/* ✅ SOLUCIÓN 3: Renderizado condicional del año */}
+                        © {isClient ? new Date().getFullYear() : ''} SISTEMASVIP.SHOP. Todos los derechos reservados.
                     </p>
                 </div>
             </motion.div>

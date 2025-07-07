@@ -1,4 +1,3 @@
-// src/app/register/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -8,6 +7,15 @@ import { useAuth } from "@/context/AuthContext";
 import { authService } from "@/services/authService";
 import { User, Mail, Lock, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+// --- INTERFAZ PARA ERRORES DE API ---
+interface ApiError {
+    response?: {
+        data?: {
+            message?: string;
+        };
+    };
+}
 
 const ClientOnlyParticles: React.FC = () => {
     return (
@@ -51,6 +59,7 @@ const RegisterPage: React.FC = () => {
     const router = useRouter();
 
     useEffect(() => {
+        // Esto asegura que el código dentro se ejecute solo en el cliente
         setIsClient(true);
     }, []);
 
@@ -80,21 +89,15 @@ const RegisterPage: React.FC = () => {
                 setError('Error en el registro: Rol de usuario inesperado.');
             }
         } catch (err: unknown) {
-            if (
-                typeof err === 'object' &&
-                err !== null &&
-                'response' in err &&
-                typeof (err as any).response?.data?.message === 'string'
-            ) {
-                setError((err as any).response.data.message);
-            } else {
-                setError('Error al registrarte. Intenta de nuevo.');
-            }
+            const apiError = err as ApiError;
+            const message = apiError.response?.data?.message || 'Error al registrarte. Intenta de nuevo.';
+            setError(message);
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-slate-900 to-blue-950">
+            {/* ✅ SOLUCIÓN 1: Renderizado condicional de las partículas */}
             {isClient && <ClientOnlyParticles />}
 
             <motion.div
@@ -120,6 +123,7 @@ const RegisterPage: React.FC = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* ... (el formulario no cambia) ... */}
                         <div className="space-y-2">
                             <label className="text-gray-700 font-medium flex items-center">
                                 <User className="h-4 w-4 mr-2 text-blue-600" />
@@ -205,7 +209,8 @@ const RegisterPage: React.FC = () => {
                     </form>
 
                     <div className="mt-8 pt-6 border-t border-gray-200">
-                        <p className="text-center text-gray-600 text-sm">
+                        {/* ✅ SOLUCIÓN 2: Se cambió <p> por <div> para un HTML válido */}
+                        <div className="text-center text-gray-600 text-sm">
                             ¿Ya tienes una cuenta?{' '}
                             <Link
                                 href="/login"
@@ -221,13 +226,14 @@ const RegisterPage: React.FC = () => {
                                     />
                                 </span>
                             </Link>
-                        </p>
+                        </div>
                     </div>
                 </motion.div>
 
                 <div className="mt-2 text-center">
                     <p className="text-sm text-white/30">
-                        © {new Date().getFullYear()} SISTEMASVIP.SHOP. Todos los derechos reservados.
+                        {/* ✅ SOLUCIÓN 3: Renderizado condicional del año */}
+                        © {isClient ? new Date().getFullYear() : ''} SISTEMASVIP.SHOP. Todos los derechos reservados.
                     </p>
                 </div>
             </motion.div>
