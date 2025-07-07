@@ -2,12 +2,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {useAuth} from "@/context/AuthContext";
-import {ClientUser, Order} from "@/types";
+import { useAuth } from "@/context/AuthContext";
+import { ClientUser, Order } from "@/types";
 import userService from "@/services/userService";
 import orderService from "@/services/orderService";
-import Link from 'next/link'
-
+import Link from 'next/link';
 
 const DashboardHomePage: React.FC = () => {
     const { user, loading: authLoading } = useAuth();
@@ -28,11 +27,22 @@ const DashboardHomePage: React.FC = () => {
 
                     // Fetch latest orders (e.g., last 3)
                     const ordersData = await orderService.getClientOrders(user.id);
-                    setLatestOrders(ordersData.slice(0, 3)); // Get only the latest 3 orders
-
-                } catch (err: any) {
+                    setLatestOrders(ordersData.slice(0, 3));
+                } catch (err: unknown) {
                     console.error('Error fetching dashboard data:', err);
-                    setError(err.response?.data?.message || 'Error al cargar los datos del dashboard.');
+
+                    if (
+                        typeof err === 'object' &&
+                        err !== null &&
+                        'response' in err &&
+                        typeof (err as { response?: { data?: { message?: string } } }).response?.data?.message === 'string'
+                    ) {
+                        setError((err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Error al cargar los datos del dashboard.');
+                    } else if (err instanceof Error) {
+                        setError(err.message);
+                    } else {
+                        setError('Error al cargar los datos del dashboard.');
+                    }
                 } finally {
                     setDataLoading(false);
                 }
@@ -115,4 +125,3 @@ const DashboardHomePage: React.FC = () => {
 };
 
 export default DashboardHomePage;
-

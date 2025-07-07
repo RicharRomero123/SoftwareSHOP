@@ -9,8 +9,7 @@ import { authService } from "@/services/authService";
 import { User, Mail, Lock, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// Componente para partículas que solo se renderiza en cliente
-const ClientOnlyParticles = () => {
+const ClientOnlyParticles: React.FC = () => {
     return (
         <div className="absolute inset-0 overflow-hidden">
             {[...Array(30)].map((_, i) => (
@@ -47,7 +46,7 @@ const RegisterPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [isClient, setIsClient] = useState(false); // Para renderizado condicional
+    const [isClient, setIsClient] = useState(false);
     const { login } = useAuth();
     const router = useRouter();
 
@@ -55,12 +54,17 @@ const RegisterPage: React.FC = () => {
         setIsClient(true);
     }, []);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError('');
         setSuccess('');
+
         try {
-            const response = await authService.register({ nombre: name, email, password });
+            const response = await authService.register({
+                nombre: name,
+                email,
+                password
+            });
 
             if (response.rol === 'CLIENTE') {
                 login({
@@ -69,19 +73,28 @@ const RegisterPage: React.FC = () => {
                     email: response.email,
                     rol: response.rol,
                 });
+
                 setSuccess('¡Registro exitoso! Redirigiendo a tu panel...');
                 setTimeout(() => router.push('/dashboard'), 1500);
             } else {
                 setError('Error en el registro: Rol de usuario inesperado.');
             }
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Error al registrarte. Intenta de nuevo.');
+        } catch (err: unknown) {
+            if (
+                typeof err === 'object' &&
+                err !== null &&
+                'response' in err &&
+                typeof (err as any).response?.data?.message === 'string'
+            ) {
+                setError((err as any).response.data.message);
+            } else {
+                setError('Error al registrarte. Intenta de nuevo.');
+            }
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-slate-900 to-blue-950">
-            {/* Fondo con partículas animadas (solo en cliente) */}
             {isClient && <ClientOnlyParticles />}
 
             <motion.div
@@ -107,7 +120,6 @@ const RegisterPage: React.FC = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Campo Nombre */}
                         <div className="space-y-2">
                             <label className="text-gray-700 font-medium flex items-center">
                                 <User className="h-4 w-4 mr-2 text-blue-600" />
@@ -126,7 +138,6 @@ const RegisterPage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Campo Email */}
                         <div className="space-y-2">
                             <label className="text-gray-700 font-medium flex items-center">
                                 <Mail className="h-4 w-4 mr-2 text-blue-600" />
@@ -145,7 +156,6 @@ const RegisterPage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Campo Contraseña */}
                         <div className="space-y-2">
                             <label className="text-gray-700 font-medium flex items-center">
                                 <Lock className="h-4 w-4 mr-2 text-blue-600" />
@@ -164,7 +174,6 @@ const RegisterPage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Mensajes de estado */}
                         {error && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
@@ -184,7 +193,6 @@ const RegisterPage: React.FC = () => {
                             </motion.div>
                         )}
 
-                        {/* Botón de Registro */}
                         <motion.button
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.98 }}
@@ -196,7 +204,6 @@ const RegisterPage: React.FC = () => {
                         </motion.button>
                     </form>
 
-                    {/* Enlace de Login */}
                     <div className="mt-8 pt-6 border-t border-gray-200">
                         <p className="text-center text-gray-600 text-sm">
                             ¿Ya tienes una cuenta?{' '}
@@ -218,7 +225,6 @@ const RegisterPage: React.FC = () => {
                     </div>
                 </motion.div>
 
-                {/* Footer */}
                 <div className="mt-2 text-center">
                     <p className="text-sm text-white/30">
                         © {new Date().getFullYear()} SISTEMASVIP.SHOP. Todos los derechos reservados.
