@@ -12,7 +12,7 @@ import Image from 'next/image'; // Se importa Image de Next.js
 import { motion, AnimatePresence } from 'framer-motion';
 // Se eliminaron los iconos no utilizados para limpiar el código
 import { 
-    Coins, Package, CheckCircle, ArrowRight, Loader, Check, X, 
+    Package, CheckCircle, ArrowRight, Loader, Check, X, 
     PlusCircle, TrendingDown, Star, MessageSquare, Tv, Music, Gamepad2
 } from 'lucide-react';
 
