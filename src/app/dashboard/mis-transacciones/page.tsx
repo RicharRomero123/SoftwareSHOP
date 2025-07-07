@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from "@/context/AuthContext";
 import { Transaction, TransactionType } from "@/types";
 import transactionService from "@/services/transactionService";
-import { ArrowDownCircle, ArrowUpCircle, Calendar, Wallet, Landmark, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, Calendar, Wallet, Landmark, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- INTERFAZ PARA ERRORES DE API ---
@@ -63,7 +63,7 @@ const DateRangePickerModal = ({ isOpen, onClose, onApply, initialStartDate, init
             const isInRange = startDate && endDate && dayDate > startDate && dayDate < endDate;
             const isHoveringInRange = startDate && !endDate && hoverDate && dayDate > startDate && dayDate <= hoverDate;
 
-            let baseClasses = "w-10 h-10 flex items-center justify-center transition-colors duration-200 cursor-pointer";
+            const baseClasses = "w-10 h-10 flex items-center justify-center transition-colors duration-200 cursor-pointer";
             let dayClasses = "";
 
             if (isSelectedStart || isSelectedEnd) {
@@ -103,8 +103,9 @@ const DateRangePickerModal = ({ isOpen, onClose, onApply, initialStartDate, init
                     <h3 className="font-bold text-lg">{currentMonth.toLocaleString('es-PE', { month: 'long', year: 'numeric' }).toUpperCase()}</h3>
                     <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))} className="p-2 rounded-full hover:bg-slate-700"><ChevronRight/></button>
                 </div>
+                {/* ✅ SOLUCIÓN: Se añade 'index' al map para crear una key única */}
                 <div className="grid grid-cols-7 gap-2 text-center text-xs text-slate-400 mb-2">
-                    {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map(day => <div key={day}>{day}</div>)}
+                    {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, index) => <div key={`${day}-${index}`}>{day}</div>)}
                 </div>
                 <div className="grid grid-cols-7 gap-1">
                     {renderDays()}
@@ -140,7 +141,7 @@ const MisTransaccionesPage: React.FC = () => {
       const data = await transactionService.getClientTransactions(user.id);
       const sortedData = data.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
       setTransactions(sortedData);
-      setFilteredTransactions(sortedData); // ✅ SOLUCIÓN: Poblar la lista filtrada al mismo tiempo que la original.
+      setFilteredTransactions(sortedData);
     } catch (err: unknown) {
       console.error('Error al obtener transacciones del cliente:', err);
       const apiError = err as ApiError;
@@ -164,7 +165,6 @@ const MisTransaccionesPage: React.FC = () => {
     }
     if (startDate && endDate) {
       const start = new Date(startDate);
-      // Ajuste para incluir la fecha de inicio completa
       start.setHours(0, 0, 0, 0);
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
@@ -177,8 +177,6 @@ const MisTransaccionesPage: React.FC = () => {
   }, [activeTypeFilter, startDate, endDate, transactions]);
 
   useEffect(() => {
-    // Ya no es necesario llamar a applyFilters aquí inicialmente,
-    // pero se mantiene para que los filtros se apliquen cuando cambien.
     applyFilters();
   }, [applyFilters]);
 
