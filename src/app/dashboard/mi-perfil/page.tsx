@@ -6,9 +6,9 @@ import { useAuth } from '@/context/AuthContext';
 import { ClientUser } from '@/types';
 import userService from '@/services/userService';
 import {
-  User, Shield, Coins, FileText, BookOpen, Lock,
+  User, Shield, Coins, FileText, BookOpen,
   ChevronRight, BadgeInfo, Package, Repeat, HelpCircle, CheckCircle
-} from 'lucide-react';
+} from 'lucide-react'; // ✅ SOLUCIÓN: Se eliminó 'Lock' de esta línea
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -112,12 +112,9 @@ const MiPerfilPage: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* ✅ SOLUCIÓN: Layout flexible que cambia de columna a fila */}
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* Columna Izquierda (en móvil aparece segunda) */}
           <div className="lg:w-2/3 space-y-8 order-2 lg:order-1">
-            {/* 2. Información General */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 shadow-lg">
               <h2 className="text-xl font-bold text-white mb-6">Información General</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -143,7 +140,6 @@ const MiPerfilPage: React.FC = () => {
               </div>
             </motion.div>
             
-            {/* 3. Mi Actividad */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
                 <h2 className="text-xl font-bold text-white mb-4">Mi Actividad</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -160,7 +156,6 @@ const MiPerfilPage: React.FC = () => {
                 </div>
             </motion.div>
             
-            {/* 5. Seguridad */}
              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }}>
                 <h2 className="text-xl font-bold text-white mb-4">Seguridad</h2>
                  <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 flex justify-between items-center">
@@ -173,9 +168,7 @@ const MiPerfilPage: React.FC = () => {
             </motion.div>
           </div>
 
-          {/* Columna Derecha (en móvil aparece primera) */}
           <div className="lg:w-1/3 space-y-8 order-1 lg:order-2">
-            {/* 1. Saldo */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="bg-gradient-to-br from-blue-600/80 to-indigo-700/80 rounded-2xl p-6 shadow-2xl text-white">
               <div className="flex items-center gap-4 mb-4">
                 <Coins className="w-8 h-8 text-amber-300"/>
@@ -185,7 +178,6 @@ const MiPerfilPage: React.FC = () => {
               <p className="text-center text-blue-200">Monedas VIP</p>
             </motion.div>
             
-            {/* 4. Recursos Útiles */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }} className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 shadow-lg">
                 <h2 className="text-xl font-bold text-white mb-4">Recursos Útiles</h2>
                 <div className="space-y-2">

@@ -8,11 +8,12 @@ import userService from "@/services/userService";
 import orderService from "@/services/orderService";
 import serviceService from "@/services/serviceService";
 import Link from 'next/link';
+import Image from 'next/image'; // ✅ SOLUCIÓN: Importar Image de Next.js
 import { motion, AnimatePresence } from 'framer-motion';
+// ✅ SOLUCIÓN: Se eliminaron los iconos no utilizados
 import { 
-    Coins, Package, CheckCircle, ArrowRight, ShoppingBag, Loader, Check, X, 
-    PlusCircle, TrendingDown, Star, MessageSquare, Tv, Music, Gamepad2, 
-    LayoutDashboard, User, Repeat, Settings, ChevronRight
+    Coins, Package, CheckCircle, ArrowRight, Loader, Check, X, 
+    PlusCircle, TrendingDown, Star, MessageSquare, Tv, Music, Gamepad2
 } from 'lucide-react';
 
 // --- Helper Components ---
@@ -34,27 +35,42 @@ const StatCard = ({ icon, title, value, unit, delay }: { icon: React.ReactNode, 
     </motion.div>
 );
 
-// ✅ SOLUCIÓN: Componente BalanceDonutChart restaurado correctamente.
-const BalanceDonutChart = ({ balance = 0, spent = 0 }) => {
-    const total = balance + spent;
-    const percentage = total > 0 ? (spent / total) * 100 : 0;
-    const circumference = 2 * Math.PI * 40; // Reduced radius
+const BalanceScoreMeter = ({ balance = 0, spent = 0 }) => {
+    const totalPotential = balance + spent;
+    const percentage = totalPotential > 0 ? (balance / totalPotential) * 100 : 100;
+    const radius = 90;
+    const circumference = Math.PI * radius;
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
     return (
-        <div className="relative w-40 h-40 flex items-center justify-center">
-            <svg className="w-full h-full" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" fill="transparent" strokeWidth="10" className="text-slate-700" />
-                <motion.circle
-                    cx="50" cy="50" r="40" fill="transparent" strokeWidth="10" strokeLinecap="round"
-                    transform="rotate(-90 50 50)" className="text-blue-500" strokeDasharray={circumference}
-                    initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset }}
-                    transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+        <div className="relative w-full flex flex-col items-center">
+            <svg className="w-full" viewBox="0 0 200 110">
+                <path
+                    d="M 10 100 A 90 90 0 0 1 190 100"
+                    strokeWidth="20"
+                    fill="none"
+                    className="text-slate-700"
+                    strokeLinecap="round"
+                />
+                <motion.path
+                    d="M 10 100 A 90 90 0 0 1 190 100"
+                    strokeWidth="20"
+                    fill="none"
+                    className="text-amber-400"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    initial={{ strokeDashoffset: circumference }}
+                    animate={{ strokeDashoffset }}
+                    transition={{ duration: 1.2, delay: 0.5, ease: "circOut" }}
                 />
             </svg>
-            <div className="absolute flex flex-col items-center justify-center">
-                <span className="text-3xl font-bold text-white">{balance}</span>
-                <span className="text-sm text-slate-400">Monedas</span>
+            <div className="absolute top-1/2 -translate-y-1/4 flex flex-col items-center">
+                <span className="text-4xl font-bold text-white">{balance}</span>
+                <span className="text-sm text-slate-400 -mt-1">Monedas</span>
+            </div>
+            <div className="w-full flex justify-between text-xs text-slate-400 mt-1 px-2">
+                <span>Gastado: {spent}</span>
+                <span>Total: {totalPotential}</span>
             </div>
         </div>
     );
@@ -92,9 +108,11 @@ const RechargeModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
                     </div>
                     <div className="bg-slate-900/50 p-4 rounded-lg flex flex-col items-center justify-center">
                         <p className="font-semibold mb-2">Escanea para pagar con Yape</p>
-                        <img src="https://res.cloudinary.com/dod56svuf/image/upload/v1751870405/WhatsApp_Image_2025-07-06_at_6.34.11_PM_jejyh9.jpg" alt="QR Code Yape" className="rounded-lg w-48 h-48"/>
+                        {/* ✅ SOLUCIÓN: Se reemplazó <img> por <Image> */}
+                        <Image src="https://res.cloudinary.com/dod56svuf/image/upload/v1751870405/WhatsApp_Image_2025-07-06_at_6.34.11_PM_jejyh9.jpg" alt="QR Code Yape" width={192} height={192} className="rounded-lg"/>
                         <div className="mt-4 text-xs text-center text-slate-400 bg-slate-800 p-2 rounded-md">
-                            <p>Una vez realizado el pago, haz clic en "Notificar por WhatsApp" y **adjunta la captura** de tu comprobante en el chat.</p>
+                            {/* ✅ SOLUCIÓN: Comillas escapadas con &quot; */}
+                            <p>Una vez realizado el pago, haz clic en &quot;Notificar por WhatsApp&quot; y **adjunta la captura** de tu comprobante en el chat.</p>
                         </div>
                     </div>
                 </div>
@@ -216,20 +234,13 @@ const DashboardHomePage: React.FC = () => {
             <div className="max-w-screen-2xl mx-auto relative z-10 p-4 sm:p-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     
-                    {/* Main Content */}
-                    <main className="lg:col-span-9 space-y-8">
+                    <main className="lg:col-span-8 space-y-8">
                         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                                 <div>
-                                    {/* ✅ SOLUCIÓN: Saludo de bienvenida actualizado */}
                                     <h1 className="text-4xl font-bold text-white mb-2">Hola, {clientData?.nombre.split(' ')[0]} 👋</h1>
                                     <p className="text-lg text-slate-400">Aquí tienes un resumen de tu actividad.</p>
                                 </div>
-                             
-                            </div>
-                        </motion.div>
                                 <button onClick={() => setIsRechargeModalOpen(true)} className="mt-4 sm:mt-0 flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20">
                                     <PlusCircle size={20}/>
                                     Añadir Saldo
@@ -238,12 +249,12 @@ const DashboardHomePage: React.FC = () => {
                         </motion.div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <StatCard icon={<Coins className="w-7 h-7 text-amber-400"/>} title="Saldo Actual" value={clientData?.monedas || 0} unit="Monedas" delay={0.1}/>
                             <StatCard icon={<Package className="w-7 h-7 text-blue-400"/>} title="Órdenes Totales" value={stats.totalOrders} delay={0.2}/>
                             <StatCard icon={<TrendingDown className="w-7 h-7 text-red-400"/>} title="Gasto Total" value={stats.totalExpenses} unit="Monedas" delay={0.3}/>
+                            <StatCard icon={<Star className="w-7 h-7 text-yellow-400"/>} title="Servicio Favorito" value={stats.favoriteService} delay={0.4}/>
                         </div>
 
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}>
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }}>
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-xl font-bold text-white">Actividad Reciente</h2>
                                 <Link href="/dashboard/mis-ordenes" className="text-sm font-semibold text-blue-400 hover:underline flex items-center gap-1">
@@ -279,20 +290,10 @@ const DashboardHomePage: React.FC = () => {
                         </motion.div>
                     </main>
 
-                    {/* Sidebar */}
-                    <aside className="lg:col-span-3 space-y-8">
-                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }} className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 flex flex-col items-center">
+                    <aside className="lg:col-span-4 space-y-8">
+                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 flex flex-col items-center">
                             <h2 className="text-xl font-bold text-white mb-4">Resumen de Saldo</h2>
-                            <BalanceDonutChart balance={clientData?.monedas || 0} spent={stats.monthlyExpenses} />
-                            <div className="w-full mt-4">
-                                <div className="flex justify-between text-xs text-slate-400 mb-1">
-                                    <span>Gastado este mes</span>
-                                    <span>{stats.monthlyExpenses} Monedas</span>
-                                </div>
-                                <div className="w-full bg-slate-700 rounded-full h-2.5">
-                                    <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${(stats.monthlyExpenses / ((clientData?.monedas || 0) + stats.monthlyExpenses || 1)) * 100}%` }}></div>
-                                </div>
-                            </div>
+                            <BalanceScoreMeter balance={clientData?.monedas || 0} spent={stats.monthlyExpenses} />
                          </motion.div>
                          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.6 }}>
                             <h2 className="text-xl font-bold text-white mb-4">Servicios Populares</h2>

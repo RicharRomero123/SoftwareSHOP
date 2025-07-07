@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from "@/context/AuthContext";
 import { Transaction, TransactionType } from "@/types";
 import transactionService from "@/services/transactionService";
-import { ArrowDownCircle, ArrowUpCircle, Calendar, Wallet, Landmark, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, Calendar, Wallet, Landmark, X, ChevronLeft, ChevronRight } from 'lucide-react'; // ✅ SOLUCIÓN: Se eliminó 'Filter' de esta línea
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- INTERFAZ PARA ERRORES DE API ---
@@ -140,7 +140,7 @@ const MisTransaccionesPage: React.FC = () => {
       const data = await transactionService.getClientTransactions(user.id);
       const sortedData = data.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
       setTransactions(sortedData);
-      setFilteredTransactions(sortedData); // ✅ SOLUCIÓN: Poblar la lista filtrada al mismo tiempo que la original.
+      setFilteredTransactions(sortedData);
     } catch (err: unknown) {
       console.error('Error al obtener transacciones del cliente:', err);
       const apiError = err as ApiError;
@@ -164,7 +164,6 @@ const MisTransaccionesPage: React.FC = () => {
     }
     if (startDate && endDate) {
       const start = new Date(startDate);
-      // Ajuste para incluir la fecha de inicio completa
       start.setHours(0, 0, 0, 0);
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
@@ -177,8 +176,6 @@ const MisTransaccionesPage: React.FC = () => {
   }, [activeTypeFilter, startDate, endDate, transactions]);
 
   useEffect(() => {
-    // Ya no es necesario llamar a applyFilters aquí inicialmente,
-    // pero se mantiene para que los filtros se apliquen cuando cambien.
     applyFilters();
   }, [applyFilters]);
 
