@@ -81,7 +81,7 @@ const RegisterPage: React.FC = () => {
                     nombre: response.nombre,
                     email: response.email,
                     rol: response.rol,
-                });
+                }, response.token); // Guardar el token JWT
 
                 setSuccess('¡Registro exitoso! Redirigiendo a tu panel...');
                 setTimeout(() => router.push('/dashboard'), 1500);
