@@ -190,11 +190,12 @@ const MisTransaccionesPage: React.FC = () => {
     switch (type) {
       case 'RECARGA': return { color: 'text-green-400', icon: <ArrowDownCircle size={22} />, label: 'Recarga de Saldo' };
       case 'GASTO': return { color: 'text-red-400', icon: <ArrowUpCircle size={22} />, label: 'Compra de Servicio' };
+      case 'REEMBOLSO': return { color: 'text-yellow-400', icon: <Landmark size={22} />, label: 'Reembolso' };
       default: return { color: 'text-slate-400', icon: <Landmark size={22} />, label: 'Otro' };
     }
   };
 
-  const typeFilterOptions: (TransactionType | 'TODAS')[] = ['TODAS', 'RECARGA', 'GASTO'];
+  const typeFilterOptions: (TransactionType | 'TODAS')[] = ['TODAS', 'RECARGA', 'GASTO', 'REEMBOLSO'];
 
   if (authLoading || loading) {
     return (

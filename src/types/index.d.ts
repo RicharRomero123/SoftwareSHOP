@@ -51,8 +51,9 @@ export interface Service {
     precioMonedas: number;
     requiereEntrega: boolean;
     activo: boolean;
-    tiempoEsperaMinutos: string; // El backend lo devuelve como string
+    tiempoEsperaMinutos: string; // O number si el backend lo envía como tal
     fechaCreacion: string;
+    imgUrl:string;
 }
 
 /**
@@ -96,7 +97,7 @@ export interface CreateOrderPayload {
 /**
  * Define los tipos de transacción.
  */
-export type TransactionType = 'RECARGA' | 'GASTO';
+export type TransactionType = 'RECARGA' | 'GASTO'| 'REEMBOLSO';
 
 /**
  * Interfaz para la estructura de una transacción.
