@@ -1,98 +1,81 @@
-// src/context/AuthContext.tsx
 'use client';
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import Cookies from 'js-cookie';
-import { UserSession } from '../types';
+import { UserSession } from '../types'; // Importa UserSession
 
 interface AuthContextType {
-  user: UserSession | null;
-  login: (userData: UserSession) => void;
-  logout: () => void;
-  isClient: boolean;
-  loading: boolean;
+    user: UserSession | null;
+    login: (userData: UserSession, token: string) => void; // AÑADIDO: token como parámetro
+    logout: () => void;
+    isClient: boolean;
+    loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<UserSession | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+    const [user, setUser] = useState<UserSession | null>(null);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const parsedUser: unknown = JSON.parse(storedUser);
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        const storedToken = Cookies.get('jwtToken'); // Obtener el token de las cookies
 
-        // Verificamos si el objeto tiene estructura de UserSession
-        if (
-          typeof parsedUser === 'object' &&
-          parsedUser !== null &&
-          'rol' in parsedUser &&
-          (parsedUser as UserSession).rol === 'CLIENTE'
-        ) {
-          setUser(parsedUser as UserSession);
-        } else {
-          console.warn(
-            'Attempted to load non-CLIENTE user into client app context. Logging out.'
-          );
-          localStorage.removeItem('user');
-          Cookies.remove('user', { path: '/' });
+        if (storedUser && storedToken) {
+            try {
+                const parsedUser: UserSession = JSON.parse(storedUser);
+                if (parsedUser.rol === 'CLIENTE') {
+                    setUser(parsedUser);
+                } else {
+                    console.warn('Attempted to load non-CLIENTE user into client app context. Logging out.');
+                    localStorage.removeItem('user');
+                    Cookies.remove('user', { path: '/' });
+                    Cookies.remove('jwtToken', { path: '/' }); // Asegurarse de limpiar el token
+                }
+            } catch (e) {
+                console.error("Error parsing user from localStorage or token from cookies", e);
+                localStorage.removeItem('user');
+                Cookies.remove('user', { path: '/' });
+                Cookies.remove('jwtToken', { path: '/' }); // Asegurarse de limpiar el token
+            }
         }
-      } catch (e: unknown) {
-        console.error('Error parsing user from localStorage', e);
+        setLoading(false);
+    }, []);
+
+    // Modificada para aceptar el token
+    const login = (userData: UserSession, token: string) => {
+        if (userData.rol === 'CLIENTE') {
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+            Cookies.set('user', JSON.stringify(userData), { expires: 7, path: '/' });
+            Cookies.set('jwtToken', token, { expires: 7, path: '/' }); // Guardar el token en las cookies
+        } else {
+            console.error('Only CLIENTE users can log into this application.');
+            logout();
+        }
+    };
+
+    const logout = () => {
+        setUser(null);
         localStorage.removeItem('user');
         Cookies.remove('user', { path: '/' });
-      }
-    }
-    setLoading(false);
-  }, []);
+        Cookies.remove('jwtToken', { path: '/' }); // Eliminar el token JWT al cerrar sesión
+    };
 
-  const login = (userData: UserSession): void => {
-    if (userData.rol === 'CLIENTE') {
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      Cookies.set('user', JSON.stringify(userData), { expires: 7, path: '/' });
-    } else {
-      console.error('Only CLIENTE users can log into this application.');
-      logout();
-    }
-  };
+    const isClient = user?.rol === 'CLIENTE';
 
-  const logout = (): void => {
-    setUser(null);
-    localStorage.removeItem('user');
-    Cookies.remove('user', { path: '/' });
-  };
-
-  const isClient: boolean = user?.rol === 'CLIENTE';
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        login,
-        logout,
-        isClient,
-        loading,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+    return (
+        <AuthContext.Provider value={{ user, login, logout, isClient, loading }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
 };

@@ -1,51 +1,14 @@
 // src/app/login/page.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from "@/context/AuthContext";
-import { authService } from "@/services/authService";
+
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// --- INTERFAZ PARA ERRORES DE API (Buena práctica) ---
-interface ApiError {
-    response?: {
-        data?: {
-            message?: string;
-        };
-    };
-}
-
-const AnimatedBackground: React.FC = () => (
-    <div className="absolute inset-0 overflow-hidden">
-        {[...Array(30)].map((_, i) => (
-            <motion.div
-                key={i}
-                className="absolute rounded-full bg-gradient-to-r from-blue-600/10 to-indigo-600/10"
-                initial={{
-                    width: `${Math.random() * 10 + 5}rem`,
-                    height: `${Math.random() * 10 + 5}rem`,
-                    top: `${Math.random() * 100}%`,
-                    left: `${Math.random() * 100}%`,
-                    opacity: Math.random() * 0.2 + 0.05
-                }}
-                animate={{
-                    top: `${Math.random() * 100}%`,
-                    left: `${Math.random() * 100}%`,
-                    scale: [1, 1.2, 1]
-                }}
-                transition={{
-                    duration: Math.random() * 10 + 15,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                    delay: Math.random() * 5
-                }}
-            />
-        ))}
-    </div>
-);
+import { useAuth } from '@/context/AuthContext';
+import { authService } from '@/services/authService';
 
 
 const LoginPage: React.FC = () => {
@@ -53,17 +16,12 @@ const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
-    const [isClient, setIsClient] = useState(false); // ✅ SOLUCIÓN: Estado para controlar renderizado en cliente
     const { login } = useAuth();
     const router = useRouter();
 
+    // Texto animado letra por letra
     const title = "SISTEMASVIP.SHOP";
     const letters = title.split("");
-
-    useEffect(() => {
-        // Este código solo se ejecuta en el navegador
-        setIsClient(true);
-    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -77,23 +35,48 @@ const LoginPage: React.FC = () => {
                     nombre: response.nombre,
                     email: response.email,
                     rol: response.rol,
-                });
+                    // No pasamos 'monedas' aquí, se obtendrá en el dashboard
+                }, response.token); // <-- PASAR EL TOKEN A LA FUNCIÓN LOGIN
                 router.push('/dashboard');
             } else {
                 setError('Acceso denegado: Solo clientes pueden acceder a este panel.');
             }
-        } catch (err: unknown) {
-            const apiError = err as ApiError;
-            setError(apiError.response?.data?.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Error al iniciar sesión. Verifica tus credenciales.');
         }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-            {/* ✅ SOLUCIÓN 1: Renderizado condicional del fondo */}
-            {isClient && <AnimatedBackground />}
-            
-            {/* Título animado */}
+            {/* Fondo con partículas animadas */}
+            <div className="absolute inset-0 overflow-hidden">
+                {[...Array(30)].map((_, i) => (
+                    <motion.div
+                        key={i}
+                        className="absolute rounded-full bg-gradient-to-r from-blue-600/10 to-indigo-600/10"
+                        initial={{
+                            width: `${Math.random() * 10 + 5}rem`,
+                            height: `${Math.random() * 10 + 5}rem`,
+                            top: `${Math.random() * 100}%`,
+                            left: `${Math.random() * 100}%`,
+                            opacity: Math.random() * 0.2 + 0.05
+                        }}
+                        animate={{
+                            top: `${Math.random() * 100}%`,
+                            left: `${Math.random() * 100}%`,
+                            scale: [1, 1.2, 1]
+                        }}
+                        transition={{
+                            duration: Math.random() * 10 + 15,
+                            repeat: Infinity,
+                            repeatType: "reverse",
+                            delay: Math.random() * 5
+                        }}
+                    />
+                ))}
+            </div>
+
+            {/* Texto SISTEMASVIP.SHOP animado */}
             <motion.div
                 className="absolute top-8 w-full max-w-md px-4 z-10"
                 initial={{ opacity: 0, y: -20 }}
@@ -135,7 +118,6 @@ const LoginPage: React.FC = () => {
                 />
             </motion.div>
 
-            {/* Formulario */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -146,6 +128,7 @@ const LoginPage: React.FC = () => {
                     whileHover={{ y: -5 }}
                     className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 w-full"
                 >
+                    {/* Logo y título */}
                     <div className="flex flex-col items-center mb-8">
                         <motion.div
                             whileHover={{ rotate: 10, scale: 1.1 }}
@@ -157,7 +140,9 @@ const LoginPage: React.FC = () => {
                         <p className="text-gray-600 mt-2">Bienvenido Cliente</p>
                     </div>
 
+                    {/* Formulario */}
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Campo Email */}
                         <div className="space-y-2">
                             <label className="text-gray-700 font-medium flex items-center">
                                 <Mail className="h-4 w-4 mr-2 text-blue-600" />
@@ -176,6 +161,7 @@ const LoginPage: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Campo Contraseña */}
                         <div className="space-y-2">
                             <label className="text-gray-700 font-medium flex items-center">
                                 <Lock className="h-4 w-4 mr-2 text-blue-600" />
@@ -196,11 +182,16 @@ const LoginPage: React.FC = () => {
                                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors duration-300"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
-                                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    {showPassword ? (
+                                        <EyeOff className="h-5 w-5" />
+                                    ) : (
+                                        <Eye className="h-5 w-5" />
+                                    )}
                                 </button>
                             </div>
                         </div>
 
+                        {/* Mensaje de error */}
                         {error && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
@@ -211,6 +202,7 @@ const LoginPage: React.FC = () => {
                             </motion.div>
                         )}
 
+                        {/* Botón de Inicio de Sesión */}
                         <motion.button
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.98 }}
@@ -222,21 +214,32 @@ const LoginPage: React.FC = () => {
                         </motion.button>
                     </form>
 
+                    {/* Enlace de Registro */}
                     <div className="mt-8 pt-6 border-t border-gray-200">
-                        {/* ✅ SOLUCIÓN 2: Se cambió <p> por <div> */}
-                        <div className="text-center text-gray-600 text-sm">
+                        <p className="text-center text-gray-600 text-sm">
                             ¿No tienes una cuenta?{' '}
-                            <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-300">
-                                Regístrate aquí
+                            <Link
+                                href="/register"
+                                className="font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-300 relative"
+                            >
+                                <span className="relative">
+                                    Regístrate aquí
+                                    <motion.span
+                                        className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600"
+                                        initial={{ scaleX: 0 }}
+                                        whileHover={{ scaleX: 1 }}
+                                        transition={{ duration: 0.3 }}
+                                    />
+                                </span>
                             </Link>
-                        </div>
+                        </p>
                     </div>
                 </motion.div>
 
+                {/* Footer */}
                 <div className="mt-6 text-center">
                     <p className="text-sm text-white/80">
-                        {/* ✅ SOLUCIÓN 3: Renderizado condicional del año */}
-                        © {isClient ? new Date().getFullYear() : ''} SISTEMASVIP.SHOP. Todos los derechos reservados.
+                        © {new Date().getFullYear()} SISTEMASVIP.SHOP. Todos los derechos reservados.
                     </p>
                 </div>
             </motion.div>

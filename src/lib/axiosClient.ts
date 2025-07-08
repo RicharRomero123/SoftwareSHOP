@@ -11,11 +11,12 @@ const axiosClient = axios.create({
 
 axiosClient.interceptors.request.use(
     (config) => {
-        // Uncomment and adapt if your API uses JWT tokens for client routes
-        // const token = Cookies.get('jwtToken');
-        // if (token) {
-        //   config.headers.Authorization = `Bearer ${token}`;
-        // }
+        // Obtener el token de las cookies
+        const token = Cookies.get('jwtToken');
+        if (token) {
+            // Si existe el token, añadirlo al encabezado de autorización
+            config.headers.Authorization = `Bearer ${token}`;
+        }
         return config;
     },
     (error) => {
@@ -23,15 +24,17 @@ axiosClient.interceptors.request.use(
     }
 );
 
-// Optional: Add a response interceptor to handle 401 Unauthorized errors
+// Interceptor de respuesta para manejar errores 401 Unauthorized
 axiosClient.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response && error.response.status === 401) {
-            console.warn('Unauthorized request. Clearing session.');
+            console.warn('Unauthorized request. Clearing session and redirecting to login.');
+            // Limpiar la sesión y el token JWT
             Cookies.remove('user', { path: '/' });
             localStorage.removeItem('user');
-            // window.location.href = '/login'; // Redirect to login on 401
+            Cookies.remove('jwtToken', { path: '/' }); // Eliminar el token JWT de las cookies
+            window.location.href = '/login'; // Redirigir a la página de login
         }
         return Promise.reject(error);
     }

@@ -8,6 +8,9 @@ export interface AuthResponse {
     email: string;
     rol: UserRole;
     message: string;
+    token: string; // <-- NUEVO: El token JWT
+    type: string; // <-- NUEVO: Tipo de token (ej. "Bearer")
+    monedas?: number; // Monedas es opcional al inicio, se cargará después
 }
 
 export interface UserSession {
