@@ -13,6 +13,11 @@ export interface AuthResponse {
     monedas?: number; // Monedas es opcional al inicio, se cargará después
 }
 
+export interface VerifyCodePayload {
+    email: string;
+    codigo: string; // Código de verificación enviado al email
+}
+
 export interface UserSession {
     id: string;
     nombre: string;

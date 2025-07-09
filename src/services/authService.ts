@@ -1,27 +1,33 @@
 // src/services/authService.ts
 import axiosClient from '../lib/axiosClient';
-import { AuthResponse, LoginPayload, RegisterPayload } from '../types';
+// Asegúrate de que tu archivo 'types.ts' incluya 'VerifyCodePayload'
+import { AuthResponse, LoginPayload, RegisterPayload, VerifyCodePayload } from '../types';
 
 export const authService = {
-    /**
-     * Handles user login.
-     * POST /auth/login
-     * @param credentials User's email and password.
-     * @returns AuthResponse containing user data and JWT token.
-     */
-    login: async (credentials: LoginPayload): Promise<AuthResponse> => {
-        const response = await axiosClient.post<AuthResponse>('/auth/login', credentials);
-        return response.data;
-    },
+  /**
+   * Handles user login.
+   * POST /auth/login
+   */
+  login: async (credentials: LoginPayload): Promise<AuthResponse> => {
+    const response = await axiosClient.post<AuthResponse>('/auth/login', credentials);
+    return response.data;
+  },
 
-    /**
-     * Handles user registration.
-     * POST /auth/register
-     * @param userData User's name, email, and password.
-     * @returns AuthResponse containing user data after registration.
-     */
-    register: async (userData: RegisterPayload): Promise<AuthResponse> => {
-        const response = await axiosClient.post<AuthResponse>('/auth/register', userData);
-        return response.data;
-    },
+  /**
+   * ✅ RENOMBRADO: Solicita un código de verificación al email del usuario.
+   * POST /auth/solicitar-registro
+   */
+  requestRegistration: async (userData: RegisterPayload): Promise<{ message: string }> => {
+    const response = await axiosClient.post<{ message: string }>('/auth/solicitar-registro', userData);
+    return response.data;
+  },
+
+  /**
+   * ✅ NUEVO: Verifica el código para completar el registro.
+   * POST /auth/verificar-codigo
+   */
+  verifyCode: async (payload: VerifyCodePayload): Promise<AuthResponse> => {
+    const response = await axiosClient.post<AuthResponse>('/auth/verificar-codigo', payload);
+    return response.data;
+  },
 };
