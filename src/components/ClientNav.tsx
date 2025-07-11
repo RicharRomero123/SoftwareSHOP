@@ -16,7 +16,7 @@ import Image from 'next/image';
 const ClientNav: React.FC = () => {
     const pathname = usePathname();
     const router = useRouter();
-    const { user, loading: authLoading, logout } = useAuth();
+    const { user, logout } = useAuth();
     const [userCoins, setUserCoins] = useState<number | null>(null);
     const [loadingCoins, setLoadingCoins] = useState<boolean>(true);
     const [isMenuOpen, setIsMenuOpen] = useState(false);

@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react'; // ✅ SOLUCIÓN: Se añadi�
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Plus, ChevronLeft, Zap, ShieldCheck, Download, Monitor, Users } from 'lucide-react';
+import { ChevronRight, Plus, ChevronLeft } from 'lucide-react';
 
 // --- Componente de Navegación ---
 const Navbar = () => (
