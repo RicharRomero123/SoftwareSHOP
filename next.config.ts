@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['res.cloudinary.com'], // <--- AÑADE ESTA LÍNEA
+    domains: ['res.cloudinary.com',"i.imgur.com"], // <--- AÑADE ESTA LÍNEA
   },
 };
 

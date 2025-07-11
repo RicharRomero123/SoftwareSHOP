@@ -11,6 +11,7 @@ import {
     LogOut, Menu, X, Coins
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
 const ClientNav: React.FC = () => {
     const pathname = usePathname();
@@ -18,33 +19,33 @@ const ClientNav: React.FC = () => {
     const { user, loading: authLoading, logout } = useAuth();
     const [userCoins, setUserCoins] = useState<number | null>(null);
     const [loadingCoins, setLoadingCoins] = useState<boolean>(true);
-    const [coinsError, setCoinsError] = useState<string | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const fetchUserCoins = useCallback(async () => {
         if (user?.id) {
             setLoadingCoins(true);
-            setCoinsError(null);
             try {
                 const userData = await userService.getUserById(user.id);
                 setUserCoins(userData.monedas);
             } catch (err: unknown) { 
                 console.error('Error al obtener monedas del usuario:', err);
-                // La lógica interna ya es segura, solo se necesitaba cambiar el tipo del error.
-                setCoinsError('Error al cargar monedas.');
                 setUserCoins(null);
             } finally {
                 setLoadingCoins(false);
             }
-        } else if (!authLoading) {
-            setUserCoins(null);
-            setLoadingCoins(false);
         }
-    }, [user?.id, authLoading]);
+    }, [user?.id]);
 
     useEffect(() => {
-        fetchUserCoins();
-    }, [fetchUserCoins]);
+        if (isClient) {
+            fetchUserCoins();
+        }
+    }, [fetchUserCoins, isClient]);
 
     const navItems = [
         { name: 'Inicio', href: '/dashboard', icon: Home },
@@ -56,100 +57,67 @@ const ClientNav: React.FC = () => {
 
     const handleLogout = () => {
         logout();
-        router.push('/login');
+        router.push('/');
     };
 
     return (
-        <nav className="bg-slate-900 text-white shadow-lg fixed w-full top-0 z-50">
+        <nav className="fixed w-full top-0 z-50 bg-slate-900/80 backdrop-blur-lg border-b border-slate-700/50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16">
-                    {/* Logo y menú móvil */}
+                <div className="flex justify-between h-20">
+                    {/* Logo */}
                     <div className="flex items-center">
-                        <Link
-                            href="/dashboard"
-                            className="flex items-center text-xl font-bold tracking-tighter"
-                        >
-                            <span className="bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
-                                SISTEMASVIP.SHOP
-                            </span>
+                        <Link href="/dashboard" className="flex-shrink-0 flex items-center gap-2">
+                           <Image src="https://res.cloudinary.com/dod56svuf/image/upload/v1751876631/softwareVip.png" alt="SistemasVIP Logo" width={40} height={40} />
+                           <span className="text-xl font-bold text-white hidden sm:block">SistemasVIP</span>
                         </Link>
+                    </div>
 
-                        {/* Menú desktop - oculto en móvil */}
-                        <div className="hidden md:flex ml-10">
-                            <div className="flex space-x-1">
-                                {navItems.map((item) => {
-                                    const Icon = item.icon;
-                                    const isActive = pathname === item.href;
-
-                                    return (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            className={`
-                                                flex items-center px-3 py-2 rounded-md text-sm font-medium
-                                                transition-colors duration-200
-                                                ${isActive
-                                                ? 'bg-slate-800 text-blue-400'
-                                                : 'text-gray-300 hover:text-white hover:bg-slate-800'
-                                                }
-                                            `}
-                                        >
-                                            <Icon className="h-4 w-4 mr-2" />
-                                            {item.name}
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                    {/* Menú desktop */}
+                    <div className="hidden md:flex items-center space-x-2">
+                        {navItems.map((item) => {
+                            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                            return (
+                                <Link key={item.href} href={item.href} className={`relative px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
+                                    {item.name}
+                                    {isActive && (
+                                        <motion.span layoutId="underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
+                                    )}
+                                </Link>
+                            );
+                        })}
                     </div>
 
                     {/* Sección usuario y botones */}
-                    <div className="flex items-center space-x-4">
-                        {user && (
-                            <motion.div
-                                whileHover={{ scale: 1.02 }}
-                                className="hidden md:flex items-center bg-slate-800 px-4 py-2 rounded-full"
-                            >
-                                <span className="text-gray-300 text-sm font-medium mr-2 truncate max-w-[120px]">
-                                    {user.nombre}
-                                </span>
-
-                                <div className="flex items-center space-x-1">
-                                    <Coins className="h-4 w-4 text-amber-400" />
+                    <div className="flex items-center gap-4">
+                        {isClient && user && (
+                            <div className="hidden md:flex items-center gap-4">
+                                <div className="flex items-center bg-slate-800/50 border border-slate-700 px-3 py-1.5 rounded-full">
+                                    <Coins className="h-5 w-5 text-amber-400 mr-2" />
                                     {loadingCoins ? (
-                                        <span className="text-gray-400 text-xs">Cargando...</span>
-                                    ) : coinsError ? (
-                                        <span className="text-red-400 text-xs">Error</span>
+                                        <div className="h-4 w-8 bg-slate-700 rounded animate-pulse"></div>
                                     ) : (
-                                        <span className="text-amber-400 font-medium text-sm">
-                                            {userCoins !== null ? userCoins : 'N/A'}
-                                        </span>
+                                        <span className="font-bold text-white">{userCoins ?? 0}</span>
                                     )}
                                 </div>
-                            </motion.div>
+                                <div className="flex items-center gap-3">
+                                    <div className="text-right">
+                                        <p className="text-sm font-semibold text-white">{user.nombre}</p>
+                                        <p className="text-xs text-slate-400 capitalize">{user.rol.toLowerCase()}</p>
+                                    </div>
+                                    <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center font-bold text-lg">
+                                        {user.nombre.charAt(0).toUpperCase()}
+                                    </div>
+                                </div>
+                                <button onClick={handleLogout} className="p-2 rounded-full text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">
+                                    <LogOut size={20} />
+                                </button>
+                            </div>
                         )}
-
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={handleLogout}
-                            className="hidden md:flex items-center bg-slate-800 hover:bg-red-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-300"
-                        >
-                            <LogOut className="h-4 w-4 mr-1" />
-                            <span>Cerrar Sesión</span>
-                        </motion.button>
-
-                        {/* Botón menú móvil */}
-                        <button
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className="md:hidden text-gray-300 hover:text-white focus:outline-none"
-                        >
-                            {isMenuOpen ? (
-                                <X className="h-6 w-6" />
-                            ) : (
-                                <Menu className="h-6 w-6" />
-                            )}
-                        </button>
+                        <div className="md:hidden">
+                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-800">
+                                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -158,70 +126,24 @@ const ClientNav: React.FC = () => {
             <AnimatePresence>
                 {isMenuOpen && (
                     <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden bg-slate-800 border-t border-slate-700"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="md:hidden bg-slate-900/95 backdrop-blur-xl border-t border-slate-700"
                     >
-                        <div className="px-2 pt-2 pb-3 space-y-1">
-                            {navItems.map((item) => {
-                                const Icon = item.icon;
-                                const isActive = pathname === item.href;
-
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className={`
-                                            flex items-center px-3 py-2 rounded-md text-base font-medium
-                                            transition-colors duration-200
-                                            ${isActive
-                                            ? 'bg-slate-700 text-blue-400'
-                                            : 'text-gray-300 hover:text-white hover:bg-slate-700'
-                                        }
-                                        `}
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        <Icon className="h-5 w-5 mr-3" />
-                                        {item.name}
-                                    </Link>
-                                );
-                            })}
-
-                            {user && (
-                                <div className="flex items-center justify-between px-3 py-2 mt-4 border-t border-slate-700 pt-4">
-                                    <div className="flex items-center">
-                                        <UserIcon className="h-5 w-5 text-gray-400 mr-2" />
-                                        <span className="text-gray-300 text-sm font-medium truncate max-w-[140px]">
-                                            {user.nombre}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex items-center space-x-1">
-                                        <Coins className="h-4 w-4 text-amber-400" />
-                                        {loadingCoins ? (
-                                            <span className="text-gray-400 text-xs">...</span>
-                                        ) : coinsError ? (
-                                            <span className="text-red-400 text-xs">Err</span>
-                                        ) : (
-                                            <span className="text-amber-400 font-medium text-sm">
-                                                {userCoins !== null ? userCoins : 'N/A'}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            <button
-                                onClick={() => {
-                                    handleLogout();
-                                    setIsMenuOpen(false);
-                                }}
-                                className="w-full flex items-center justify-center mt-2 bg-slate-700 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300"
-                            >
-                                <LogOut className="h-5 w-5 mr-2" />
-                                Cerrar Sesión
-                            </button>
+                        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                            {navItems.map((item) => (
+                                <Link key={item.href} href={item.href} onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-md text-base font-medium text-slate-300 hover:bg-slate-800 hover:text-white">
+                                    <item.icon size={20} />
+                                    {item.name}
+                                </Link>
+                            ))}
+                             <div className="border-t border-slate-700 my-2 !mt-4 pt-4">
+                                <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-3 rounded-md text-base font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300">
+                                    <LogOut size={20}/>
+                                    Cerrar Sesión
+                                </button>
+                             </div>
                         </div>
                     </motion.div>
                 )}
